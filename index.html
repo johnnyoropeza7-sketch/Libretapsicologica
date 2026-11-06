@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Libreta mágica</title>
+<style>
+:root{--bg:#f3f4f2;--card:#fff;--fg:#1b1f1e;--mut:#6a716f;--line:#d9dcda;--acc:#0f6e56;--accbg:#dff1ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111514;--card:#1a201e;--fg:#e8ecea;--mut:#98a09d;--line:#2c3532;--acc:#5dcaa5;--accbg:#10362c}}
+:root[data-theme="dark"]{--bg:#111514;--card:#1a201e;--fg:#e8ecea;--mut:#98a09d;--line:#2c3532;--acc:#5dcaa5;--accbg:#10362c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:480px;margin:0 auto;padding:16px}
+h1{font:500 20px/1.2 Georgia,serif;margin:4px 0 14px}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;min-height:44px;padding:0 14px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:500}
+.tabs button{flex:1}
+.pg{display:flex;gap:8px;align-items:center;margin-bottom:16px}
+.pg input{flex:1;min-width:0;min-height:56px;text-align:center;font:500 28px Georgia,serif;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px}
+.pg button{width:56px;min-height:56px;font-size:22px;padding:0}
+.lbl{font-size:13px;color:var(--mut);margin:14px 0 6px}
+.row{display:flex;gap:8px}
+.row button{flex:1;padding:0 6px}
+.res{margin-top:18px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.res b{font:500 36px/1.15 Georgia,serif;color:var(--acc)}
+.res span{color:var(--mut);font-size:14px}
+.ver{margin-top:14px;width:100%}
+.grid{display:grid;grid-template-columns:62px repeat(3,minmax(0,1fr));gap:6px;margin-top:12px;font-size:13px}
+.grid .h{color:var(--mut);display:flex;align-items:center;font-size:12px}
+.grid .c{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 2px;text-align:center;overflow-wrap:anywhere}
+.grid .c.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:500}
+.row input{flex:1;min-width:0;min-height:44px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 10px}
+.kw{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kw button{min-height:36px}
+.heard{font-size:13px;color:var(--mut);min-height:20px;margin-top:8px}
+.all{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.all div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45}
+.all strong{display:block;font:500 15px Georgia,serif;margin-bottom:2px}
+.all i{font-style:normal;color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+<h1>Libreta mágica</h1>
+<div class="tabs">
+<button id="t1" aria-pressed="true">Consulta</button>
+<button id="t2" aria-pressed="false">Todas las páginas</button>
+</div>
+<section id="s1">
+<div class="pg">
+<button id="prev" aria-label="Página anterior">−</button>
+<input id="num" type="number" inputmode="numeric" min="1" max="100" value="1" aria-label="Número de página">
+<button id="next" aria-label="Página siguiente">+</button>
+</div>
+<div class="row"><button id="mic" aria-pressed="false">Escuchar voz</button><button id="say" aria-pressed="true">Hablar al auricular</button></div>
+<div class="heard" id="heard" aria-live="polite"></div>
+<div class="heard" id="stt"></div>
+<div class="lbl">Tipo de cosa</div>
+<div class="row" id="rows"></div>
+<div class="lbl">Primera letra</div>
+<div class="row" id="cols"></div>
+<div class="res" id="res" aria-live="polite"></div>
+<button class="ver" id="vb" aria-pressed="false">Ver la página completa</button>
+<div class="grid" id="grid" hidden></div>
+<div class="lbl" style="margin-top:22px">Claves para abrir una página</div>
+<div class="row"><input id="kw" placeholder="Clave, por ejemplo: manzana" aria-label="Clave"><input id="kn" type="number" inputmode="numeric" min="1" max="100" placeholder="Página" aria-label="Página" style="max-width:96px"><button id="ka">Guardar</button></div>
+<div class="heard" id="kerr"></div>
+<div id="kl"></div>
+<div class="lbl" style="margin-top:22px">Palabra que activa cada tipo</div>
+<div class="row"><input id="c0" aria-label="Palabra para grande" placeholder="Grande"><input id="c1" aria-label="Palabra para comida" placeholder="Comida"><input id="c2" aria-label="Palabra para pequeño" placeholder="Pequeño"></div>
+<div class="heard">Separa varias con coma. Dila solo cuando el espectador ya confirmó el tipo.</div>
+<div class="lbl" style="margin-top:22px">Palabra que activa cada forma de letra</div>
+<div class="row"><input id="f0" aria-label="Palabra para recta" placeholder="Recta"><input id="f1" aria-label="Palabra para combinada" placeholder="Combinada"><input id="f2" aria-label="Palabra para curva" placeholder="Curva"></div>
+<div class="lbl" style="margin-top:22px">Palabra de aviso antes del número de página</div>
+<div class="row"><input id="g0" aria-label="Palabra de aviso" placeholder="pensaste"></div>
+</section>
+<section id="s2" hidden>
+<div class="all" id="all"></div>
+</section>
+</main>
+<script>
+const P="Edificio Faro Helicóptero Iglesia Kiosco Locomotora Montaña Navío Torre Volcán Avión Elefante Hotel Estadio Fábrica Hangar Isla Molino Tren Autobús Ascensor Estatua Teatro Muralla Mansión Tractor Velero Acueducto Fuente Tobogán|Puente Piscina Pirámide Palacio Puerto Parque Pista Plaza Presa Planetario Barco Biblioteca Banco Balneario Bodega Basílica Dique Dirigible Depósito Domo Discoteca Rascacielos Rotonda Restaurante Refinería Radar Rampa Rancho Residencia Remolcador|Castillo Catedral Camión Cohete Casa Cascada Circo Cúpula Crucero Coliseo Cañón Cine Colegio Campanario Carrusel Océano Observatorio Ópera Olivo Satélite Submarino Supermercado Selva Sierra Silo Semáforo Sol Surtidor Cementerio Cuartel|Arroz Empanada Fresa Helado Hamburguesa Kiwi Lasaña Limón Mango Manzana Naranja Nachos Tomate Tortilla Taco Tamal Zanahoria Aguacate Ensalada Flan Frijoles Huevo Lentejas Leche Maíz Melón Nuez Tarta Tostada Vainilla|Pizza Pan Pasta Pollo Papa Pera Piña Pepino Pastel Palomitas Pimiento Paella Pavo Pescado Banana Bagel Brócoli Burrito Bizcocho Berenjena Dátil Durazno Dona Dulce Rábano Remolacha Ravioles Repollo Risotto Rosquilla|Cereza Coco Café Chocolate Ciruela Canela Calabaza Cebolla Champiñón Churro Croissant Cheesecake Caramelo Cacahuate Coliflor Oliva Omelette Ostra Sopa Sandía Sushi Salmón Sándwich Salchicha Salsa Sidra Sorbete Soda Sardina Sal|Llave Lápiz Lupa Libreta Linterna Lima Tijeras Tarjeta Timbre Tuerca Tornillo Moneda Mechero Mapa Imán Anillo Aguja Alfiler Auricular Encendedor Estuche Espejo Etiqueta Hebilla Hilo Fósforo Fusible Vela Yoyó Alambre|Pluma Pila Peine Pinza Pulsera Pendiente Perla Pegamento Pelota Pipa Botón Bolígrafo Bombilla Brújula Broche Billetera Bisagra Dado Dedal Disco Diamante Dardo Reloj Regla Rosa Rubí Rotulador Remache Resorte Rueda|Cuchara Cuchillo Cadena Collar Corbata Candado Cepillo Cinta Clip Cierre Cerilla Chicle Chip Cordón Corcho Cubo Ovillo Ocarina Sello Sobre Sombrero Sortija Silbato Sacapuntas Soga Sonajero Sujetapapeles Salero Sifón Soporte".split("|").map(s=>s.split(" "));
+const ROWS=["Lugar u objeto grande","Comida","Objeto pequeño"],COLS=["Recta","Mixta","Curva"];
+const it=(s,p)=>P[s][(p*7+s*11)%30];
+const $=id=>document.getElementById(id);
+let page=1,row=-1,col=-1;
+function mk(box,names,get,set){box.innerHTML="";names.forEach((n,i)=>{const b=document.createElement("button");b.textContent=n;b.setAttribute("aria-pressed",get()===i);b.onclick=()=>{set(get()===i?-1:i);draw()};box.appendChild(b)})}
+function draw(){
+mk($("rows"),ROWS,()=>row,v=>row=v);
+mk($("cols"),COLS,()=>col,v=>col=v);
+const r=$("res");
+if(row>=0&&col>=0){r.innerHTML="<b>"+it(row*3+col,page)+"</b><span>Página "+page+"</span>"}
+else{r.innerHTML="<span>Elige el tipo de cosa y la forma de la letra.</span>"}
+const k=row>=0&&col>=0?page+"-"+row+"-"+col:"";if(k&&k!==last)speak(it(row*3+col,page));last=k;
+const g=$("grid");
+if(!g.hidden){let h="<div></div>"+COLS.map(c=>"<div class='h' style='justify-content:center'>"+c+"</div>").join("");
+for(let a=0;a<3;a++){h+="<div class='h'>"+["Grande","Comida","Pequeño"][a]+"</div>";for(let b=0;b<3;b++)h+="<div class='c"+(a===row&&b===col?" on":"")+"'>"+it(a*3+b,page)+"</div>"}
+g.innerHTML=h}
+}
+function setPage(n){page=Math.min(100,Math.max(1,Math.round(n)||1));$("num").value=page;draw()}
+$("prev").onclick=()=>setPage(page-1);
+$("next").onclick=()=>setPage(page+1);
+$("num").oninput=e=>{const v=parseInt(e.target.value,10);if(v>=1&&v<=100){page=v;draw()}};
+$("num").onchange=e=>setPage(parseInt(e.target.value,10));
+$("vb").onclick=()=>{const g=$("grid");g.hidden=!g.hidden;$("vb").setAttribute("aria-pressed",!g.hidden);$("vb").textContent=g.hidden?"Ver la página completa":"Ocultar la página";draw()};
+function tab(n){$("s1").hidden=n!==1;$("s2").hidden=n!==2;$("t1").setAttribute("aria-pressed",n===1);$("t2").setAttribute("aria-pressed",n===2)}
+$("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
+let h="";
+for(let p=1;p<=100;p++){h+="<div><strong>"+p+"</strong>";for(let a=0;a<3;a++){h+="<i>"+[0,1,2].map(b=>it(a*3+b,p)).join(" · ")+"</i><br>"}h+="</div>"}
+$("all").innerHTML=h;
+let last="",on=false,rec=null,K=[];
+const nz=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+const W={uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,veintiuno:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29,treinta:30,cuarenta:40,cincuenta:50,sesenta:60,setenta:70,ochenta:80,noventa:90,cien:100,ciento:100};
+function num(s){const d=s.match(/\d+/);if(d)return +d[0];let t=0;s.split(/\s+/).forEach(w=>{if(W[w])t+=W[w]});return t}
+function speak(t){if($("say").getAttribute("aria-pressed")!=="true"||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-ES";speechSynthesis.speak(u)}catch(_){}}
+function showGrid(){$("grid").hidden=false;$("vb").setAttribute("aria-pressed",true);$("vb").textContent="Ocultar la página"}
+function goPage(n){page=n;$("num").value=n;row=-1;col=-1;showGrid();speak("Página "+n);draw()}
+function handle(t){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
+for(const k of K){if(s.includes(k.w)){goPage(k.n);return}}
+let a=-1,b=-1;
+const hb=SH.map(c=>c.some(w=>w&&s.includes(w))),nb=hb.filter(Boolean).length;
+if(nb===1)b=hb.indexOf(true);
+const ex=[/grande|lugar/,/comida|comer/,/pequen|chico/].map(r=>r.test(s));
+const h=CUE.map((c,i)=>c.some(w=>w&&s.includes(w))||(nb>0&&ex[i]));
+if(h.filter(Boolean).length===1)a=h.indexOf(true);
+const n=num(s),ok=n>=1&&n<=100;
+if(ok&&a<0&&b<0){goPage(n);return}
+if(ok){page=n;$("num").value=n;row=-1;col=-1}
+if(a>=0)row=a;if(b>=0)col=b;
+if(ok||a>=0||b>=0)draw()}
+function setMic(){const m=$("mic");m.setAttribute("aria-pressed",on);m.textContent=on?"Escuchando…":"Escuchar voz";if(on)setSt(0);else $("stt").textContent=""}
+function setSt(n){st=n;$("stt").textContent=["Esperando el aviso","Esperando el número de página","Página fijada: esperando pistas"][n]}
+function hit(c,s){return c.some(w=>w&&s.includes(w))}
+function flow(t){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
+for(const k of K){if(s.includes(k.w)){goPage(k.n);setSt(2);return}}
+if(st===0){if(!hit(GOW,s))return;setSt(1)}
+if(st===1){const n=num(s);if(n>=1&&n<=100){goPage(n);setSt(2)}return}
+const hb=SH.map(c=>hit(c,s)),ha=CUE.map(c=>hit(c,s));
+if(hb.filter(Boolean).length===1)col=hb.indexOf(true);
+if(ha.filter(Boolean).length===1)row=ha.indexOf(true);
+draw();
+if(row>=0&&col>=0)setSt(0)}
+$("mic").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){$("heard").textContent="Este navegador no permite comandos de voz.";return}
+try{speechSynthesis.speak(new SpeechSynthesisUtterance(""))}catch(_){}
+if(on){on=false;try{rec.stop()}catch(_){}setMic();return}
+rec=new SR();rec.lang="es-ES";rec.continuous=true;
+rec.onresult=e=>flow(e.results[e.results.length-1][0].transcript);
+rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){on=false;setMic();$("heard").textContent="Permite el micrófono para usar la voz."}};
+rec.onend=()=>{if(on){try{rec.start()}catch(_){}}};
+on=true;setMic();try{rec.start()}catch(_){}};
+$("say").onclick=()=>{const b=$("say");b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")!=="true")};
+try{K=JSON.parse(localStorage.getItem("lm-kw")||"[]")}catch(_){K=[]}
+function drawK(){const l=$("kl");l.innerHTML="";K.forEach((k,i)=>{const d=document.createElement("div");d.className="kw";d.textContent="“"+k.w+"”: página "+k.n;const b=document.createElement("button");b.textContent="Quitar";b.onclick=()=>{K.splice(i,1);try{localStorage.setItem("lm-kw",JSON.stringify(K))}catch(_){}drawK()};d.appendChild(b);l.appendChild(d)})}
+$("ka").onclick=()=>{const w=nz($("kw").value),n=parseInt($("kn").value,10);
+if(!w||!(n>=1&&n<=100)){$("kerr").textContent="Escribe una clave y una página del 1 al 100.";return}
+$("kerr").textContent="";K=K.filter(k=>k.w!==w);K.push({w,n});try{localStorage.setItem("lm-kw",JSON.stringify(K))}catch(_){}
+$("kw").value="";$("kn").value="";drawK()};
+let CUE=[["lejos"],["sabor"],["cerca"]],SH=[["arriba"],["derecha"],["abajo"]],GOW=["pensaste"],st=0;
+try{const c=JSON.parse(localStorage.getItem("lm-cue")||"null");if(c&&c.length===3)CUE=c}catch(_){}
+[0,1,2].forEach(i=>{const e=$("c"+i);e.value=CUE[i].join(", ");e.oninput=()=>{CUE[i]=e.value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-cue",JSON.stringify(CUE))}catch(_){}}});
+try{const c=JSON.parse(localStorage.getItem("lm-sh2")||"null");if(c&&c.length===3)SH=c}catch(_){}
+[0,1,2].forEach(i=>{const e=$("f"+i);e.value=SH[i].join(", ");e.oninput=()=>{SH[i]=e.value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-sh2",JSON.stringify(SH))}catch(_){}}});
+try{const g=JSON.parse(localStorage.getItem("lm-go")||"null");if(g&&g.length)GOW=g}catch(_){}
+$("g0").value=GOW.join(", ");$("g0").oninput=()=>{GOW=$("g0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-go",JSON.stringify(GOW))}catch(_){}};
+drawK();
+draw();
+</script>
+</body>
+</html>
