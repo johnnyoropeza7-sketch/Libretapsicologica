@@ -83,6 +83,8 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 <div class="row"><input id="g0" aria-label="Palabra de aviso" placeholder="pensaste"></div>
 <div class="lbl" style="margin-top:22px">Palabra para repetir lo último que dijo</div>
 <div class="row"><input id="r0" aria-label="Palabra para repetir" placeholder="repite"></div>
+<div class="lbl" style="margin-top:22px">Palabra para empezar el efecto de nuevo</div>
+<div class="row"><input id="n0" aria-label="Palabra para empezar de nuevo" placeholder="vamos de nuevo"></div>
 </section>
 <section id="s2" hidden>
 <div class="all" id="all"></div>
@@ -143,15 +145,20 @@ function setMic(){const m=$("mic");m.setAttribute("aria-pressed",on);m.textConte
 function setSt(n){st=n;$("stt").textContent=["Esperando el aviso","Esperando el número de página","Página fijada: esperando pistas"][n]}
 function hit(c,s){return c.some(w=>w&&s.includes(w))}
 function flow(t){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
+if(hit(NEW,s)){row=-1;col=-1;last="";lastSay="";setSt(0);draw();speak("Listo");return}
 if(hit(RPW,s)){if(lastSay)speak(lastSay);return}
 for(const k of K){if(s.includes(k.w)){goPage(k.n);setSt(2);return}}
 if(st===0){if(!hit(GOW,s))return;setSt(1)}
 if(st===1){const n=num(s);if(n>=1&&n<=100){goPage(n);setSt(2)}return}
 const hb=SH.map(c=>hit(c,s)),ha=CUE.map(c=>hit(c,s));
-if(hb.filter(Boolean).length===1)col=hb.indexOf(true);
-if(ha.filter(Boolean).length===1)row=ha.indexOf(true);
+let nr=-1,nc=-1;
+if(hb.filter(Boolean).length===1)nc=hb.indexOf(true);
+if(ha.filter(Boolean).length===1)nr=ha.indexOf(true);
+if(nc>=0)col=nc;if(nr>=0)row=nr;
 draw();
-if(row>=0&&col>=0)setSt(0)}
+if(row>=0&&col>=0)setSt(0);
+else if(nr>=0)speak(["Grande","Comida","Pequeño"][nr]);
+else if(nc>=0)speak(["Recta","Combinada","Curva"][nc])}
 $("mic").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(!SR){$("heard").textContent="Este navegador no permite comandos de voz.";return}
 try{speechSynthesis.speak(new SpeechSynthesisUtterance(""))}catch(_){}
@@ -168,7 +175,7 @@ $("ka").onclick=()=>{const w=nz($("kw").value),n=parseInt($("kn").value,10);
 if(!w||!(n>=1&&n<=100)){$("kerr").textContent="Escribe una clave y una página del 1 al 100.";return}
 $("kerr").textContent="";K=K.filter(k=>k.w!==w);K.push({w,n});try{localStorage.setItem("lm-kw",JSON.stringify(K))}catch(_){}
 $("kw").value="";$("kn").value="";drawK()};
-let CUE=[["lejos"],["sabor"],["cerca"]],SH=[["arriba"],["derecha"],["abajo"]],GOW=["pensaste"],RPW=["repite"],lastSay="",st=0;
+let CUE=[["lejos"],["sabor"],["cerca"]],SH=[["arriba"],["derecha"],["abajo"]],GOW=["pensaste"],RPW=["repite"],NEW=["vamos de nuevo"],lastSay="",st=0;
 try{const c=JSON.parse(localStorage.getItem("lm-cue")||"null");if(c&&c.length===3)CUE=c}catch(_){}
 [0,1,2].forEach(i=>{const e=$("c"+i);e.value=CUE[i].join(", ");e.oninput=()=>{CUE[i]=e.value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-cue",JSON.stringify(CUE))}catch(_){}}});
 try{const c=JSON.parse(localStorage.getItem("lm-sh2")||"null");if(c&&c.length===3)SH=c}catch(_){}
@@ -183,6 +190,8 @@ if(wl&&!wl.released)return;wl=await navigator.wakeLock.request("screen");$("wl")
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)keepOn(true)});
 document.addEventListener("click",()=>keepOn(false));
 keepOn(true);
+try{const g=JSON.parse(localStorage.getItem("lm-nw")||"null");if(g&&g.length)NEW=g}catch(_){}
+$("n0").value=NEW.join(", ");$("n0").oninput=()=>{NEW=$("n0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-nw",JSON.stringify(NEW))}catch(_){}};
 drawK();
 draw();
 </script>
