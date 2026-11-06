@@ -62,6 +62,7 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 <div class="row"><button id="mic" aria-pressed="false">Escuchar voz</button><button id="say" aria-pressed="true">Hablar al auricular</button></div>
 <div class="heard" id="heard" aria-live="polite"></div>
 <div class="heard" id="stt"></div>
+<div class="heard" id="wl"></div>
 <div class="lbl">Tipo de cosa</div>
 <div class="row" id="rows"></div>
 <div class="lbl">Primera letra</div>
@@ -176,6 +177,12 @@ try{const g=JSON.parse(localStorage.getItem("lm-go")||"null");if(g&&g.length)GOW
 $("g0").value=GOW.join(", ");$("g0").oninput=()=>{GOW=$("g0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-go",JSON.stringify(GOW))}catch(_){}};
 try{const g=JSON.parse(localStorage.getItem("lm-rp")||"null");if(g&&g.length)RPW=g}catch(_){}
 $("r0").value=RPW.join(", ");$("r0").oninput=()=>{RPW=$("r0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-rp",JSON.stringify(RPW))}catch(_){}};
+let wl=null;
+async function keepOn(silent){try{if(!("wakeLock" in navigator)){if(!silent)$("wl").textContent="Este navegador no permite mantener la pantalla encendida.";return}
+if(wl&&!wl.released)return;wl=await navigator.wakeLock.request("screen");$("wl").textContent="Pantalla encendida mientras la app esté abierta."}catch(_){if(!silent)$("wl").textContent="No se pudo mantener la pantalla encendida."}}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)keepOn(true)});
+document.addEventListener("click",()=>keepOn(false));
+keepOn(true);
 drawK();
 draw();
 </script>
