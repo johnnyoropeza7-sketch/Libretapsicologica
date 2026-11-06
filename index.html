@@ -35,6 +35,10 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 .row input{flex:1;min-width:0;min-height:44px;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0 10px}
 .kw{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
 .kw button{min-height:36px}
+.brand{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.brand h1{margin:0}
+.brand small{display:block;color:var(--mut);font-size:13px}
+.foot{margin:28px 0 8px;text-align:center;font-size:12px;color:var(--mut)}
 .heard{font-size:13px;color:var(--mut);min-height:20px;margin-top:8px}
 .all{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .all div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45}
@@ -44,7 +48,7 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 </head>
 <body>
 <main>
-<h1>Libreta mágica</h1>
+<div class="brand"><svg width="64" height="64" viewBox="0 0 80 80" role="img" aria-label="Sombrero de mago con estrella"><defs><linearGradient id="lgh" x1="0" x2="1"><stop offset="0" stop-color="#14161c"/><stop offset=".45" stop-color="#3b4152"/><stop offset="1" stop-color="#0c0d11"/></linearGradient><linearGradient id="lgb" x1="0" x2="1"><stop offset="0" stop-color="#5b2fb5"/><stop offset=".5" stop-color="#9a6bff"/><stop offset="1" stop-color="#3d1d82"/></linearGradient><radialGradient id="lgs" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff6b0"/><stop offset=".5" stop-color="#ffc825"/><stop offset="1" stop-color="#c77a00"/></radialGradient></defs><ellipse cx="40" cy="72" rx="30" ry="5" fill="#000" opacity=".25"/><ellipse cx="40" cy="62" rx="32" ry="9" fill="url(#lgh)"/><ellipse cx="40" cy="60" rx="30" ry="7" fill="#262a36"/><path d="M22 24h36l2 36c-6 4-34 4-40 0z" fill="url(#lgh)"/><path d="M21 52c10 5 28 5 38 0l.6 7c-10 5-29 5-39.2 0z" fill="url(#lgb)"/><ellipse cx="40" cy="24" rx="18" ry="6" fill="#4a5064"/><ellipse cx="40" cy="24" rx="15" ry="4" fill="#0c0d11"/><path d="M28 28l-1 22" stroke="#fff" stroke-opacity=".18" stroke-width="3" stroke-linecap="round"/><polygon points="40,2 44,11 54,12 46,18 49,28 40,22 31,28 34,18 26,12 36,11" fill="url(#lgs)" stroke="#a86400" stroke-width=".8"/><circle cx="62" cy="14" r="2" fill="#ffe27a"/><circle cx="16" cy="20" r="1.5" fill="#ffe27a"/></svg><div><h1>Libreta mágica</h1><small>Mago Camilo</small></div></div>
 <div class="tabs">
 <button id="t1" aria-pressed="true">Consulta</button>
 <button id="t2" aria-pressed="false">Todas las páginas</button>
@@ -76,10 +80,13 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 <div class="row"><input id="f0" aria-label="Palabra para recta" placeholder="Recta"><input id="f1" aria-label="Palabra para combinada" placeholder="Combinada"><input id="f2" aria-label="Palabra para curva" placeholder="Curva"></div>
 <div class="lbl" style="margin-top:22px">Palabra de aviso antes del número de página</div>
 <div class="row"><input id="g0" aria-label="Palabra de aviso" placeholder="pensaste"></div>
+<div class="lbl" style="margin-top:22px">Palabra para repetir lo último que dijo</div>
+<div class="row"><input id="r0" aria-label="Palabra para repetir" placeholder="repite"></div>
 </section>
 <section id="s2" hidden>
 <div class="all" id="all"></div>
 </section>
+<p class="foot">© 2026 Mago Camilo. Todos los derechos reservados.</p>
 </main>
 <script>
 const P="Edificio Faro Helicóptero Iglesia Kiosco Locomotora Montaña Navío Torre Volcán Avión Elefante Hotel Estadio Fábrica Hangar Isla Molino Tren Autobús Ascensor Estatua Teatro Muralla Mansión Tractor Velero Acueducto Fuente Tobogán|Puente Piscina Pirámide Palacio Puerto Parque Pista Plaza Presa Planetario Barco Biblioteca Banco Balneario Bodega Basílica Dique Dirigible Depósito Domo Discoteca Rascacielos Rotonda Restaurante Refinería Radar Rampa Rancho Residencia Remolcador|Castillo Catedral Camión Cohete Casa Cascada Circo Cúpula Crucero Coliseo Cañón Cine Colegio Campanario Carrusel Océano Observatorio Ópera Olivo Satélite Submarino Supermercado Selva Sierra Silo Semáforo Sol Surtidor Cementerio Cuartel|Arroz Empanada Fresa Helado Hamburguesa Kiwi Lasaña Limón Mango Manzana Naranja Nachos Tomate Tortilla Taco Tamal Zanahoria Aguacate Ensalada Flan Frijoles Huevo Lentejas Leche Maíz Melón Nuez Tarta Tostada Vainilla|Pizza Pan Pasta Pollo Papa Pera Piña Pepino Pastel Palomitas Pimiento Paella Pavo Pescado Banana Bagel Brócoli Burrito Bizcocho Berenjena Dátil Durazno Dona Dulce Rábano Remolacha Ravioles Repollo Risotto Rosquilla|Cereza Coco Café Chocolate Ciruela Canela Calabaza Cebolla Champiñón Churro Croissant Cheesecake Caramelo Cacahuate Coliflor Oliva Omelette Ostra Sopa Sandía Sushi Salmón Sándwich Salchicha Salsa Sidra Sorbete Soda Sardina Sal|Llave Lápiz Lupa Libreta Linterna Lima Tijeras Tarjeta Timbre Tuerca Tornillo Moneda Mechero Mapa Imán Anillo Aguja Alfiler Auricular Encendedor Estuche Espejo Etiqueta Hebilla Hilo Fósforo Fusible Vela Yoyó Alambre|Pluma Pila Peine Pinza Pulsera Pendiente Perla Pegamento Pelota Pipa Botón Bolígrafo Bombilla Brújula Broche Billetera Bisagra Dado Dedal Disco Diamante Dardo Reloj Regla Rosa Rubí Rotulador Remache Resorte Rueda|Cuchara Cuchillo Cadena Collar Corbata Candado Cepillo Cinta Clip Cierre Cerilla Chicle Chip Cordón Corcho Cubo Ovillo Ocarina Sello Sobre Sombrero Sortija Silbato Sacapuntas Soga Sonajero Sujetapapeles Salero Sifón Soporte".split("|").map(s=>s.split(" "));
@@ -115,7 +122,7 @@ let last="",on=false,rec=null,K=[];
 const nz=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
 const W={uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,veintiuno:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29,treinta:30,cuarenta:40,cincuenta:50,sesenta:60,setenta:70,ochenta:80,noventa:90,cien:100,ciento:100};
 function num(s){const d=s.match(/\d+/);if(d)return +d[0];let t=0;s.split(/\s+/).forEach(w=>{if(W[w])t+=W[w]});return t}
-function speak(t){if($("say").getAttribute("aria-pressed")!=="true"||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-ES";speechSynthesis.speak(u)}catch(_){}}
+function speak(t){lastSay=t;if($("say").getAttribute("aria-pressed")!=="true"||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-ES";speechSynthesis.speak(u)}catch(_){}}
 function showGrid(){$("grid").hidden=false;$("vb").setAttribute("aria-pressed",true);$("vb").textContent="Ocultar la página"}
 function goPage(n){page=n;$("num").value=n;row=-1;col=-1;showGrid();speak("Página "+n);draw()}
 function handle(t){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
@@ -135,6 +142,7 @@ function setMic(){const m=$("mic");m.setAttribute("aria-pressed",on);m.textConte
 function setSt(n){st=n;$("stt").textContent=["Esperando el aviso","Esperando el número de página","Página fijada: esperando pistas"][n]}
 function hit(c,s){return c.some(w=>w&&s.includes(w))}
 function flow(t){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
+if(hit(RPW,s)){if(lastSay)speak(lastSay);return}
 for(const k of K){if(s.includes(k.w)){goPage(k.n);setSt(2);return}}
 if(st===0){if(!hit(GOW,s))return;setSt(1)}
 if(st===1){const n=num(s);if(n>=1&&n<=100){goPage(n);setSt(2)}return}
@@ -159,13 +167,15 @@ $("ka").onclick=()=>{const w=nz($("kw").value),n=parseInt($("kn").value,10);
 if(!w||!(n>=1&&n<=100)){$("kerr").textContent="Escribe una clave y una página del 1 al 100.";return}
 $("kerr").textContent="";K=K.filter(k=>k.w!==w);K.push({w,n});try{localStorage.setItem("lm-kw",JSON.stringify(K))}catch(_){}
 $("kw").value="";$("kn").value="";drawK()};
-let CUE=[["lejos"],["sabor"],["cerca"]],SH=[["arriba"],["derecha"],["abajo"]],GOW=["pensaste"],st=0;
+let CUE=[["lejos"],["sabor"],["cerca"]],SH=[["arriba"],["derecha"],["abajo"]],GOW=["pensaste"],RPW=["repite"],lastSay="",st=0;
 try{const c=JSON.parse(localStorage.getItem("lm-cue")||"null");if(c&&c.length===3)CUE=c}catch(_){}
 [0,1,2].forEach(i=>{const e=$("c"+i);e.value=CUE[i].join(", ");e.oninput=()=>{CUE[i]=e.value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-cue",JSON.stringify(CUE))}catch(_){}}});
 try{const c=JSON.parse(localStorage.getItem("lm-sh2")||"null");if(c&&c.length===3)SH=c}catch(_){}
 [0,1,2].forEach(i=>{const e=$("f"+i);e.value=SH[i].join(", ");e.oninput=()=>{SH[i]=e.value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-sh2",JSON.stringify(SH))}catch(_){}}});
 try{const g=JSON.parse(localStorage.getItem("lm-go")||"null");if(g&&g.length)GOW=g}catch(_){}
 $("g0").value=GOW.join(", ");$("g0").oninput=()=>{GOW=$("g0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-go",JSON.stringify(GOW))}catch(_){}};
+try{const g=JSON.parse(localStorage.getItem("lm-rp")||"null");if(g&&g.length)RPW=g}catch(_){}
+$("r0").value=RPW.join(", ");$("r0").oninput=()=>{RPW=$("r0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-rp",JSON.stringify(RPW))}catch(_){}};
 drawK();
 draw();
 </script>
