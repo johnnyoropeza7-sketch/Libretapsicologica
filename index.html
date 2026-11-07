@@ -104,7 +104,7 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 <div class="row"><input id="n0" aria-label="Palabra para empezar de nuevo" placeholder="vamos de nuevo"></div>
 <div class="lbl" style="margin-top:22px">Control remoto de 4 botones</div>
 <div class="row"><button id="rc" aria-pressed="false">Control remoto: apagado</button></div>
-<div class="heard">Para marcar la página: el botón de arriba suma 1 y el de abajo suma 5 (para el 22: abajo 4 veces y arriba 2). La página se abre sola cuando dejas de pulsar. Para marcar otra página, toca una vez el botón 4. Después: un toque = forma de la letra. Dos toques seguidos del mismo botón = tamaño. El botón 4: un toque empieza de nuevo, dos toques repite lo último que dijo. Sirve con un control Bluetooth que actúe como teclado; los botones de volumen casi nunca llegan a una página web.</div>
+<div class="heard">Para marcar la página: el botón de arriba suma 1, el de la derecha suma 10 y el de abajo suma 5 (para el 27: derecha 2 veces, abajo 1 y arriba 2). La página se abre sola cuando dejas de pulsar. Para marcar otra página, toca una vez el botón 4. Después: un toque = forma de la letra. Dos toques seguidos del mismo botón = tamaño. El botón 4: un toque empieza de nuevo, dos toques repite lo último que dijo. Sirve con un control Bluetooth que actúe como teclado; los botones de volumen casi nunca llegan a una página web.</div>
 <div class="heard" id="rcs" aria-live="polite"></div>
 <div id="rcl"></div>
 <div class="lbl">Tiempo máximo entre los dos toques (milisegundos)</div>
@@ -238,7 +238,7 @@ try{const g=JSON.parse(localStorage.getItem("lm-nw")||"null");if(g&&g.length)NEW
 $("n0").value=NEW.join(", ");$("n0").oninput=()=>{NEW=$("n0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-nw",JSON.stringify(NEW))}catch(_){}};
 drawK();
 draw();
-const RA=[["b1","Botón 1 · +1 en la página · luego recta (2 toques: grande)","ArrowUp"],["b2","Botón 2 · combinada (2 toques: comida)","ArrowRight"],["b3","Botón 3 · +5 en la página · luego curva (2 toques: pequeño)","ArrowDown"],["b4","Botón 4 · de nuevo (2 toques: repetir)","Enter"]];
+const RA=[["b1","Botón 1 · +1 en la página · luego recta (2 toques: grande)","ArrowUp"],["b2","Botón 2 · +10 en la página · luego combinada (2 toques: comida)","ArrowRight"],["b3","Botón 3 · +5 en la página · luego curva (2 toques: pequeño)","ArrowDown"],["b4","Botón 4 · de nuevo (2 toques: repetir)","Enter"]];
 const RK={" ":"Espacio",ArrowUp:"↑",ArrowDown:"↓",ArrowLeft:"←",ArrowRight:"→",PageUp:"Re Pág",PageDown:"Av Pág",Enter:"Enter",Escape:"Esc"};
 const kname=k=>!k?"sin asignar":(RK[k]||(k.length===1?k.toUpperCase():k));
 const nkey=e=>e.key.length===1?e.key.toLowerCase():e.key;
@@ -278,7 +278,7 @@ const t=e.target.tagName;if(t==="INPUT"||t==="TEXTAREA")return;
 const k=nkey(e),id=Object.keys(RC.map).find(a=>RC.map[a]===k);
 if(!id)return;
 e.preventDefault();if(e.repeat)return;
-if(pm&&(id==="b1"||id==="b3")){pcAdd(id==="b3"?5:1);return}
+if(pm&&(id==="b1"||id==="b2"||id==="b3")){pcAdd(id==="b3"?5:id==="b2"?10:1);return}
 taps[id]=(taps[id]||0)+1;clearTimeout(tms[id]);
 tms[id]=setTimeout(()=>{const n=taps[id]>=2?2:1;taps[id]=0;rcDo(id,n)},RC.gap)
 },true);
