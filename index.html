@@ -104,11 +104,13 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 <div class="row"><input id="n0" aria-label="Palabra para empezar de nuevo" placeholder="vamos de nuevo"></div>
 <div class="lbl" style="margin-top:22px">Control remoto de 4 botones</div>
 <div class="row"><button id="rc" aria-pressed="false">Control remoto: apagado</button></div>
-<div class="heard">Un toque = forma de la letra. Dos toques seguidos del mismo botón = tamaño. El botón 4: un toque empieza de nuevo, dos toques repite lo último que dijo. Sirve con un control Bluetooth que actúe como teclado; los botones de volumen casi nunca llegan a una página web.</div>
+<div class="heard">Para marcar la página: el botón de arriba suma 1 y el de abajo suma 5 (para el 22: abajo 4 veces y arriba 2). La página se abre sola cuando dejas de pulsar. Para marcar otra página, toca una vez el botón 4. Después: un toque = forma de la letra. Dos toques seguidos del mismo botón = tamaño. El botón 4: un toque empieza de nuevo, dos toques repite lo último que dijo. Sirve con un control Bluetooth que actúe como teclado; los botones de volumen casi nunca llegan a una página web.</div>
 <div class="heard" id="rcs" aria-live="polite"></div>
 <div id="rcl"></div>
 <div class="lbl">Tiempo máximo entre los dos toques (milisegundos)</div>
 <div class="row"><input id="rcg" type="number" inputmode="numeric" min="200" max="900" step="50" aria-label="Milisegundos entre toques"><button id="rcr">Restablecer</button></div>
+<div class="lbl">Espera para abrir la página al dejar de pulsar (milisegundos)</div>
+<div class="row"><input id="rcp" type="number" inputmode="numeric" min="800" max="4000" step="100" aria-label="Milisegundos de espera para abrir la página"></div>
 </section>
 <section id="s2" hidden>
 <div class="all" id="all"></div>
@@ -146,14 +148,14 @@ $("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
 let h="";
 for(let p=1;p<=100;p++){h+="<div><strong>"+p+"</strong>";for(let a=0;a<3;a++){h+="<i>"+[0,1,2].map(b=>it(a*3+b,p)).join(" · ")+"</i><br>"}h+="</div>"}
 $("all").innerHTML=h;
-let last="",on=false,rec=null,K=[],fp={},deb=null,busy=false,busyT=null,sid=0;
+let last="",on=false,rec=null,K=[],fp={},deb=null,busy=false,busyT=null,sid=0,pm=true,pc=0,pt=null;
 const nz=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
 const W={uno:1,dos:2,tres:3,cuatro:4,cinco:5,seis:6,siete:7,ocho:8,nueve:9,diez:10,once:11,doce:12,trece:13,catorce:14,quince:15,dieciseis:16,diecisiete:17,dieciocho:18,diecinueve:19,veinte:20,veintiuno:21,veintidos:22,veintitres:23,veinticuatro:24,veinticinco:25,veintiseis:26,veintisiete:27,veintiocho:28,veintinueve:29,treinta:30,cuarenta:40,cincuenta:50,sesenta:60,setenta:70,ochenta:80,noventa:90,cien:100,ciento:100};
 function num(s){const d=s.match(/\d+/);if(d)return +d[0];let t=0;s.split(/\s+/).forEach(w=>{if(W[w])t+=W[w]});return t}
 function primeVoice(){try{const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u)}catch(_){}}
 function speak(t){lastSay=t;if($("say").getAttribute("aria-pressed")!=="true"||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="es-ES";const id=++sid;busy=true;clearTimeout(busyT);busyT=setTimeout(()=>{busy=false},6000);const free=()=>{if(id!==sid)return;clearTimeout(busyT);busyT=setTimeout(()=>{busy=false},500)};u.onend=free;u.onerror=free;speechSynthesis.speak(u)}catch(_){busy=false}}
 function showGrid(){$("grid").hidden=false;$("vb").setAttribute("aria-pressed",true);$("vb").textContent="Ocultar la página"}
-function goPage(n){page=n;$("num").value=n;row=-1;col=-1;showGrid();speak("Página "+n);draw()}
+function goPage(n){pm=false;pc=0;clearTimeout(pt);page=n;$("num").value=n;row=-1;col=-1;showGrid();speak("Página "+n);draw()}
 function handle(t){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
 for(const k of K){if(s.includes(k.w)){goPage(k.n);return}}
 let a=-1,b=-1;
@@ -183,7 +185,7 @@ $("heard").textContent="Oí: “"+t.trim()+"”";
 if(o.amb)deb=setTimeout(()=>fire(i,o.n),250);else fire(i,o.n)}
 function onRes(e){if(busy)return;for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i],t=r[0].transcript;if(r.isFinal){clearTimeout(deb);flow(t,i)}else tryOpen(t,i)}}
 function flow(t,i){const s=nz(t);$("heard").textContent="Oí: “"+t.trim()+"”";
-if(hit(NEW,s)){row=-1;col=-1;last="";lastSay="";setSt(0);draw();speak("Listo");return}
+if(hit(NEW,s)){pmReset();row=-1;col=-1;last="";lastSay="";setSt(0);draw();speak("Listo");return}
 if(hit(RPW,s)){if(lastSay)speak(lastSay);return}
 const kk=K.find(k=>s.includes(k.w));
 if(kk){fire(i,kk.n);return}
@@ -236,23 +238,26 @@ try{const g=JSON.parse(localStorage.getItem("lm-nw")||"null");if(g&&g.length)NEW
 $("n0").value=NEW.join(", ");$("n0").oninput=()=>{NEW=$("n0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-nw",JSON.stringify(NEW))}catch(_){}};
 drawK();
 draw();
-const RA=[["b1","Botón 1 · recta (2 toques: grande)","ArrowUp"],["b2","Botón 2 · combinada (2 toques: comida)","ArrowRight"],["b3","Botón 3 · curva (2 toques: pequeño)","ArrowDown"],["b4","Botón 4 · de nuevo (2 toques: repetir)","Enter"]];
+const RA=[["b1","Botón 1 · +1 en la página · luego recta (2 toques: grande)","ArrowUp"],["b2","Botón 2 · combinada (2 toques: comida)","ArrowRight"],["b3","Botón 3 · +5 en la página · luego curva (2 toques: pequeño)","ArrowDown"],["b4","Botón 4 · de nuevo (2 toques: repetir)","Enter"]];
 const RK={" ":"Espacio",ArrowUp:"↑",ArrowDown:"↓",ArrowLeft:"←",ArrowRight:"→",PageUp:"Re Pág",PageDown:"Av Pág",Enter:"Enter",Escape:"Esc"};
 const kname=k=>!k?"sin asignar":(RK[k]||(k.length===1?k.toUpperCase():k));
 const nkey=e=>e.key.length===1?e.key.toLowerCase():e.key;
-let RC={on:false,gap:400,map:{}},learn=null;const taps={},tms={};
+let RC={on:false,gap:400,pidle:1500,map:{}},learn=null;const taps={},tms={};
 RA.forEach(a=>RC.map[a[0]]=a[2]);
-try{const c=JSON.parse(localStorage.getItem("lm-rc4")||"null");if(c){RC.on=!!c.on;if(c.gap>=200&&c.gap<=900)RC.gap=c.gap;if(c.map)Object.assign(RC.map,c.map)}}catch(_){}
+try{const c=JSON.parse(localStorage.getItem("lm-rc4")||"null");if(c){RC.on=!!c.on;if(c.gap>=200&&c.gap<=900)RC.gap=c.gap;if(c.pidle>=800&&c.pidle<=4000)RC.pidle=c.pidle;if(c.map)Object.assign(RC.map,c.map)}}catch(_){}
 function svRC(){try{localStorage.setItem("lm-rc4",JSON.stringify(RC))}catch(_){}}
 function drawRC(){const b=$("rc");b.setAttribute("aria-pressed",RC.on);b.textContent="Control remoto: "+(RC.on?"activado":"apagado");
 $("rcs").textContent=learn?"Pulsa ahora el botón del control para asignarlo.":(RC.on?"Control remoto activo.":"");
-$("rcg").value=RC.gap;
+$("rcg").value=RC.gap;$("rcp").value=RC.pidle;
 const l=$("rcl");l.innerHTML="";
 RA.forEach(a=>{const d=document.createElement("div");d.className="kw";d.textContent=a[1];
 const x=document.createElement("button");x.textContent=learn===a[0]?"Pulsa un botón…":kname(RC.map[a[0]]);x.setAttribute("aria-pressed",learn===a[0]);
 x.onclick=()=>{learn=learn===a[0]?null:a[0];drawRC()};d.appendChild(x);l.appendChild(d)})}
+function pmReset(){pm=true;pc=0;clearTimeout(pt);$("num").value=page}
+function pcAdd(d){pc=Math.min(100,pc+d);clearTimeout(pt);$("num").value=pc;$("heard").textContent="Control: página "+pc;
+$("res").innerHTML="<b>"+pc+"</b><span>Marcando la página…</span>";pt=setTimeout(()=>{const n=pc;pc=0;if(n>=1){goPage(n);if(on)setSt(2)}},RC.pidle)}
 function rcDo(id,n){
-if(id==="b4"){if(n===1){row=-1;col=-1;last="";lastSay="";if(on)setSt(0);$("heard").textContent="Control: de nuevo";draw();speak("Listo")}
+if(id==="b4"){if(n===1){pmReset();row=-1;col=-1;last="";lastSay="";if(on)setSt(0);$("heard").textContent="Control: de nuevo";draw();speak("Listo")}
 else{$("heard").textContent="Control: repetir";if(lastSay)speak(lastSay)}return}
 const i=+id.slice(1)-1;
 if(n===1)col=i;else row=i;
@@ -262,7 +267,8 @@ if(row>=0&&col>=0){if(on)setSt(0)}
 else if(n===2)speak(["Grande","Comida","Pequeño"][i]);
 else speak(["Recta","Combinada","Curva"][i])}
 $("rc").onclick=()=>{RC.on=!RC.on;learn=null;primeVoice();svRC();drawRC()};
-$("rcr").onclick=()=>{RA.forEach(a=>RC.map[a[0]]=a[2]);RC.gap=400;learn=null;svRC();drawRC()};
+$("rcr").onclick=()=>{RA.forEach(a=>RC.map[a[0]]=a[2]);RC.gap=400;RC.pidle=1500;learn=null;svRC();drawRC()};
+$("rcp").onchange=e=>{const v=parseInt(e.target.value,10);RC.pidle=v>=800&&v<=4000?v:1500;svRC();drawRC()};
 $("rcg").onchange=e=>{const v=parseInt(e.target.value,10);RC.gap=v>=200&&v<=900?v:400;svRC();drawRC()};
 document.addEventListener("keydown",e=>{
 if(learn){if(["Shift","Control","Alt","Meta","Tab"].includes(e.key))return;e.preventDefault();const k=nkey(e);
@@ -272,6 +278,7 @@ const t=e.target.tagName;if(t==="INPUT"||t==="TEXTAREA")return;
 const k=nkey(e),id=Object.keys(RC.map).find(a=>RC.map[a]===k);
 if(!id)return;
 e.preventDefault();if(e.repeat)return;
+if(pm&&(id==="b1"||id==="b3")){pcAdd(id==="b3"?5:1);return}
 taps[id]=(taps[id]||0)+1;clearTimeout(tms[id]);
 tms[id]=setTimeout(()=>{const n=taps[id]>=2?2:1;taps[id]=0;rcDo(id,n)},RC.gap)
 },true);
