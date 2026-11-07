@@ -85,12 +85,13 @@ button[aria-pressed="true"]{background:var(--accbg);border-color:var(--acc);colo
 <div class="row"><input id="r0" aria-label="Palabra para repetir" placeholder="repite"></div>
 <div class="lbl" style="margin-top:22px">Palabra para empezar el efecto de nuevo</div>
 <div class="row"><input id="n0" aria-label="Palabra para empezar de nuevo" placeholder="vamos de nuevo"></div>
-<div class="lbl" style="margin-top:22px">Control remoto</div>
+<div class="lbl" style="margin-top:22px">Control remoto de 4 botones</div>
 <div class="row"><button id="rc" aria-pressed="false">Control remoto: apagado</button></div>
-<div class="heard">Sirve con un control Bluetooth que actúe como teclado (flechas, Enter, Av Pág / Re Pág). Los botones de volumen casi nunca llegan a una página web. Si tu control tiene números, teclea la página y se fija sola.</div>
+<div class="heard">Un toque = forma de la letra. Dos toques seguidos del mismo botón = tamaño. El botón 4: un toque empieza de nuevo, dos toques repite lo último que dijo. Sirve con un control Bluetooth que actúe como teclado; los botones de volumen casi nunca llegan a una página web.</div>
 <div class="heard" id="rcs" aria-live="polite"></div>
 <div id="rcl"></div>
-<div class="row" style="margin-top:8px"><button id="rcr">Restablecer botones</button></div>
+<div class="lbl">Tiempo máximo entre los dos toques (milisegundos)</div>
+<div class="row"><input id="rcg" type="number" inputmode="numeric" min="200" max="900" step="50" aria-label="Milisegundos entre toques"><button id="rcr">Restablecer</button></div>
 </section>
 <section id="s2" hidden>
 <div class="all" id="all"></div>
@@ -200,41 +201,44 @@ try{const g=JSON.parse(localStorage.getItem("lm-nw")||"null");if(g&&g.length)NEW
 $("n0").value=NEW.join(", ");$("n0").oninput=()=>{NEW=$("n0").value.split(",").map(nz).filter(Boolean);try{localStorage.setItem("lm-nw",JSON.stringify(NEW))}catch(_){}};
 drawK();
 draw();
-const RA=[["up","Arriba · recta","ArrowUp"],["right","Derecha · combinada","ArrowRight"],["down","Abajo · curva","ArrowDown"],["far","Grande · lejos","PageUp"],["food","Comida · sabor","Enter"],["near","Pequeño · cerca","PageDown"],["rep","Repetir lo último"," "],["new","Empezar de nuevo","Escape"],["pm","Página anterior","-"],["pp","Página siguiente","+"]];
+const RA=[["b1","Botón 1 · recta (2 toques: grande)","ArrowUp"],["b2","Botón 2 · combinada (2 toques: comida)","ArrowRight"],["b3","Botón 3 · curva (2 toques: pequeño)","ArrowDown"],["b4","Botón 4 · de nuevo (2 toques: repetir)","Enter"]];
 const RK={" ":"Espacio",ArrowUp:"↑",ArrowDown:"↓",ArrowLeft:"←",ArrowRight:"→",PageUp:"Re Pág",PageDown:"Av Pág",Enter:"Enter",Escape:"Esc"};
 const kname=k=>!k?"sin asignar":(RK[k]||(k.length===1?k.toUpperCase():k));
 const nkey=e=>e.key.length===1?e.key.toLowerCase():e.key;
-let RC={on:false,map:{}},learn=null,nbuf="",ntm=null;
+let RC={on:false,gap:400,map:{}},learn=null;const taps={},tms={};
 RA.forEach(a=>RC.map[a[0]]=a[2]);
-try{const c=JSON.parse(localStorage.getItem("lm-rc")||"null");if(c){RC.on=!!c.on;if(c.map)Object.assign(RC.map,c.map)}}catch(_){}
-function svRC(){try{localStorage.setItem("lm-rc",JSON.stringify(RC))}catch(_){}}
+try{const c=JSON.parse(localStorage.getItem("lm-rc4")||"null");if(c){RC.on=!!c.on;if(c.gap>=200&&c.gap<=900)RC.gap=c.gap;if(c.map)Object.assign(RC.map,c.map)}}catch(_){}
+function svRC(){try{localStorage.setItem("lm-rc4",JSON.stringify(RC))}catch(_){}}
 function drawRC(){const b=$("rc");b.setAttribute("aria-pressed",RC.on);b.textContent="Control remoto: "+(RC.on?"activado":"apagado");
 $("rcs").textContent=learn?"Pulsa ahora el botón del control para asignarlo.":(RC.on?"Control remoto activo.":"");
+$("rcg").value=RC.gap;
 const l=$("rcl");l.innerHTML="";
 RA.forEach(a=>{const d=document.createElement("div");d.className="kw";d.textContent=a[1];
 const x=document.createElement("button");x.textContent=learn===a[0]?"Pulsa un botón…":kname(RC.map[a[0]]);x.setAttribute("aria-pressed",learn===a[0]);
 x.onclick=()=>{learn=learn===a[0]?null:a[0];drawRC()};d.appendChild(x);l.appendChild(d)})}
-function rcDo(id){
-const R={up:["c",0],right:["c",1],down:["c",2],far:["r",0],food:["r",1],near:["r",2]};
-const nm=(RA.find(a=>a[0]===id)||[])[1]||"";$("heard").textContent="Control: "+nm;
-if(R[id]){const w=R[id][0],v=R[id][1];if(w==="c")col=v;else row=v;draw();
+function rcDo(id,n){
+if(id==="b4"){if(n===1){row=-1;col=-1;last="";lastSay="";if(on)setSt(0);$("heard").textContent="Control: de nuevo";draw();speak("Listo")}
+else{$("heard").textContent="Control: repetir";if(lastSay)speak(lastSay)}return}
+const i=+id.slice(1)-1;
+if(n===1)col=i;else row=i;
+$("heard").textContent="Control: "+(n===1?["Recta","Combinada","Curva"][i]:["Grande","Comida","Pequeño"][i]);
+draw();
 if(row>=0&&col>=0){if(on)setSt(0)}
-else if(w==="r")speak(["Grande","Comida","Pequeño"][v]);
-else speak(["Recta","Combinada","Curva"][v]);return}
-if(id==="rep"){if(lastSay)speak(lastSay);return}
-if(id==="new"){row=-1;col=-1;last="";lastSay="";if(on)setSt(0);draw();speak("Listo");return}
-if(id==="pm"||id==="pp"){goPage(Math.min(100,Math.max(1,page+(id==="pp"?1:-1))));if(on)setSt(2)}}
+else if(n===2)speak(["Grande","Comida","Pequeño"][i]);
+else speak(["Recta","Combinada","Curva"][i])}
 $("rc").onclick=()=>{RC.on=!RC.on;learn=null;try{speechSynthesis.speak(new SpeechSynthesisUtterance(""))}catch(_){}svRC();drawRC()};
-$("rcr").onclick=()=>{RA.forEach(a=>RC.map[a[0]]=a[2]);learn=null;svRC();drawRC()};
+$("rcr").onclick=()=>{RA.forEach(a=>RC.map[a[0]]=a[2]);RC.gap=400;learn=null;svRC();drawRC()};
+$("rcg").onchange=e=>{const v=parseInt(e.target.value,10);RC.gap=v>=200&&v<=900?v:400;svRC();drawRC()};
 document.addEventListener("keydown",e=>{
 if(learn){if(["Shift","Control","Alt","Meta","Tab"].includes(e.key))return;e.preventDefault();const k=nkey(e);
 for(const a in RC.map)if(RC.map[a]===k)RC.map[a]="";RC.map[learn]=k;learn=null;svRC();drawRC();return}
 if(!RC.on||e.ctrlKey||e.metaKey||e.altKey)return;
 const t=e.target.tagName;if(t==="INPUT"||t==="TEXTAREA")return;
 const k=nkey(e),id=Object.keys(RC.map).find(a=>RC.map[a]===k);
-if(id){e.preventDefault();rcDo(id);return}
-if(/^\d$/.test(k)){e.preventDefault();nbuf=(nbuf+k).slice(-3);$("heard").textContent="Número: "+nbuf;clearTimeout(ntm);
-ntm=setTimeout(()=>{const n=parseInt(nbuf,10);nbuf="";if(n>=1&&n<=100){goPage(n);if(on)setSt(2)}},1200)}
+if(!id)return;
+e.preventDefault();if(e.repeat)return;
+taps[id]=(taps[id]||0)+1;clearTimeout(tms[id]);
+tms[id]=setTimeout(()=>{const n=taps[id]>=2?2:1;taps[id]=0;rcDo(id,n)},RC.gap)
 },true);
 document.addEventListener("keyup",e=>{if(!RC.on||e.target.tagName==="INPUT")return;if(Object.values(RC.map).includes(nkey(e)))e.preventDefault()},true);
 drawRC();
